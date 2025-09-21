@@ -1,0 +1,1 @@
+This repo stores the code we use in the data camp API couse. Don't forget to pull the latest codebase before using it.
