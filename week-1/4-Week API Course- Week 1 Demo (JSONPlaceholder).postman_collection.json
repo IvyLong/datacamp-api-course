@@ -1,0 +1,227 @@
+{
+	"info": {
+		"_postman_id": "64627c2d-3b1f-4c75-9007-457cc6bc8ee4",
+		"name": "4-Week API Course: Week 1 Demo (JSONPlaceholder)",
+		"description": "Demonstrates core HTTP methods (CRUD) using the JSONPlaceholder testing API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48850157",
+		"_collection_link": "https://admin-4f70d413-919061.postman.co/workspace/d93ce988-e7ed-4bbc-8dd2-dd17b022b9b4/collection/48850157-64627c2d-3b1f-4c75-9007-457cc6bc8ee4?action=share&source=collection_link&creator=48850157"
+	},
+	"item": [
+		{
+			"name": "📚 Read Operations (GET)",
+			"item": [
+				{
+					"name": "1. Get All Resources (200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/posts",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1. Get one single resource (200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/posts/{{test_post_id}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts",
+								"{{test_post_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Single Resource (200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/posts/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Non-Existent (404 Not Found)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/posts/99999",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts",
+								"99999"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Fetching single and multiple resources, plus 404 error handling."
+		},
+		{
+			"name": "✍️ Create Operation (POST)",
+			"item": [
+				{
+					"name": "1. Create New Resource (201 Created)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Thought from Postman\",\n    \"body\": \"This thought was created during the API course demo.\",\n    \"userId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/posts",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Creating a new resource (expected 201 Created)."
+		},
+		{
+			"name": "🔄 Update Operations (PUT/PATCH)",
+			"item": [
+				{
+					"name": "1. Replace Resource (PUT - 200 OK)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"title\": \"Completely REPLACED Post Title\",\n    \"body\": \"This is the ONLY content on this post now. (PUT replaces everything)\",\n    \"userId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/posts/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Update Resource (PATCH - 200 OK)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Only the Title was Updated via PATCH\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/posts/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Modifying existing resources."
+		},
+		{
+			"name": "🗑️ Delete Operation (DELETE)",
+			"item": [
+				{
+					"name": "1. Delete Resource (200 OK)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/posts/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Removing a resource (expected 200 OK)."
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "https://jsonplaceholder.typicode.com",
+			"type": "string"
+		}
+	]
+}
