@@ -1,20 +1,18 @@
 #!/bin/bash
+# filepath: /Users/ivy.long/Workplace/courses/API/api-course-code/week-1/workshop_2/auto/run
 
-# Auto/run script for Thought Tagger Workshop
-# Usage: ./auto/run [method] "thought of the day"
-# Methods: raw, sdk
-# Example: ./auto/run raw "Today is a beautiful day for learning APIs"
+# Simplified auto/run script
+# Usage: ./auto/run <command> [args...]
+# Example: ./auto/run python exercise/raw_http/thought_tagger.py "My thought"
 
 set -e
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Function to print colored output
 print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
@@ -23,34 +21,24 @@ print_success() {
     echo -e "${GREEN}✅ $1${NC}"
 }
 
-print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-}
-
 print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
-# Function to show usage
 show_usage() {
-    echo "Usage: ./auto/run \"thought of the day\" [options]"
-    echo ""
-    echo "Options:"
-    echo "  --solution-raw  - Run the raw HTTP solution (for comparison)"
-    echo "  --solution-sdk  - Run the SDK solution (for comparison)"
-    echo "  --solutions     - Run both solutions side by side"
+    echo "Usage: ./auto/run <command> [args...]"
     echo ""
     echo "Examples:"
-    echo "  ./auto/run \"Today is a beautiful day for learning APIs\""
-    echo "  ./auto/run \"Test thought\" --solution-raw"
-    echo "  ./auto/run \"Test thought\" --solution-sdk"
-    echo "  ./auto/run \"Test thought\" --solutions"
+    echo "  ./auto/run python exercise/raw_http/thought_tagger.py \"My thought\""
+    echo "  ./auto/run python solutions/sdk/thought_tagger.py \"Test\""
+    echo "  ./auto/run ls -la"
+    echo "  ./auto/run pip install requests"
     echo ""
     echo "Environment Variables:"
-    echo "  GEMINI_API_KEY - Your Google Gemini API key (required)"
+    echo "  All environment variables from your shell are passed through"
 }
 
-# Check if Docker is installed and running
+# Check if Docker is available
 check_docker() {
     if ! command -v docker &> /dev/null; then
         print_error "Docker is not installed. Please install Docker first."
@@ -63,71 +51,32 @@ check_docker() {
     fi
 }
 
-# Build Docker image if it doesn't exist
+# Build Docker image if needed
 build_image() {
     local image_name="thought-tagger-workshop"
     
     if [[ "$(docker images -q $image_name 2> /dev/null)" == "" ]]; then
         print_info "Building Docker image..."
-        docker build -t $image_name . || {
+        if ! docker build -t $image_name . &> /dev/null; then
             print_error "Failed to build Docker image"
             exit 1
-        }
+        fi
         print_success "Docker image built successfully"
-    else
-        print_info "Using existing Docker image"
     fi
 }
 
-# Main execution function
 main() {
-    # Check arguments
+    # Check if command is provided
     if [ $# -lt 1 ]; then
-        print_error "No thought provided"
+        print_error "No command provided"
         show_usage
         exit 1
     fi
     
-    local run_mode="exercise"
-    local thought=""
-    
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --solution-raw)
-                run_mode="solution-raw"
-                shift
-                ;;
-            --solution-sdk)
-                run_mode="solution-sdk"
-                shift
-                ;;
-            --solutions)
-                run_mode="solutions"
-                shift
-                ;;
-            *)
-                thought="$thought $1"
-                shift
-                ;;
-        esac
-    done
-    
-    # Clean up thought (remove leading space)
-    thought="${thought# }"
-    
-    # Check if thought is provided
-    if [ -z "$thought" ]; then
-        print_error "No thought provided"
+    # Handle help
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         show_usage
-        exit 1
-    fi
-    
-    # Check if API key is set
-    if [ -z "$GEMINI_API_KEY" ]; then
-        print_error "GEMINI_API_KEY environment variable is not set"
-        print_info "Please set your API key: export GEMINI_API_KEY='your-api-key-here'"
-        exit 1
+        exit 0
     fi
     
     # Check Docker
@@ -136,68 +85,16 @@ main() {
     # Build image
     build_image
     
-    # Execute based on run mode
-    case $run_mode in
-        "exercise")
-            print_info "Running your exercise implementation (raw HTTP with TODOs)"
-            print_info "Executing thought tagger..."
-            docker run --rm \
-                -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-                -v "$(pwd):/app" \
-                -w /app \
-                thought-tagger-workshop \
-                python "exercise/raw_http/thought_tagger.py" "$thought"
-            ;;
-        "solution-raw")
-            print_info "Running raw HTTP solution (complete implementation)"
-            print_info "Executing thought tagger..."
-            docker run --rm \
-                -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-                -v "$(pwd):/app" \
-                -w /app \
-                thought-tagger-workshop \
-                python "solutions/raw_http/thought_tagger.py" "$thought"
-            ;;
-        "solution-sdk")
-            print_info "Running SDK solution (complete implementation)"
-            print_info "Executing thought tagger..."
-            docker run --rm \
-                -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-                -v "$(pwd):/app" \
-                -w /app \
-                thought-tagger-workshop \
-                python "solutions/sdk/thought_tagger.py" "$thought"
-            ;;
-        "solutions")
-            print_info "Running both solutions for comparison"
-            echo ""
-            print_info "🔧 Raw HTTP Solution:"
-            docker run --rm \
-                -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-                -v "$(pwd):/app" \
-                -w /app \
-                thought-tagger-workshop \
-                python "solutions/raw_http/thought_tagger.py" "$thought"
-            
-            echo ""
-            print_info "🔧 SDK Solution:"
-            docker run --rm \
-                -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-                -v "$(pwd):/app" \
-                -w /app \
-                thought-tagger-workshop \
-                python "solutions/sdk/thought_tagger.py" "$thought"
-            ;;
-    esac
+    # Run the command in Docker
+    print_info "Executing: $*"
+    docker run --rm \
+        --env-file <(env) \
+        -v "$(pwd):/app" \
+        -w /app \
+        thought-tagger-workshop \
+        "$@"
     
-    print_success "Execution completed!"
+    print_success "Command completed!"
 }
 
-# Handle help flag
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    show_usage
-    exit 0
-fi
-
-# Run main function with all arguments
 main "$@"
