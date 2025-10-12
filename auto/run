@@ -29,13 +29,8 @@ show_usage() {
     echo "Usage: ./auto/run <command> [args...]"
     echo ""
     echo "Examples:"
-    echo "  ./auto/run python exercise/raw_http/thought_tagger.py \"My thought\""
-    echo "  ./auto/run python solutions/sdk/thought_tagger.py \"Test\""
-    echo "  ./auto/run ls -la"
-    echo "  ./auto/run pip install requests"
-    echo ""
-    echo "Environment Variables:"
-    echo "  All environment variables from your shell are passed through"
+    echo "  ./auto/run python {file path}"
+    echo "  ./auto/run python week-1/workshop_2/exercise/raw_http/thought_tagger.py \"My thought\""
 }
 
 # Check if Docker is available
