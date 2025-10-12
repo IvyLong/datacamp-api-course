@@ -4,7 +4,7 @@ info:
   description: API for storing, retrieving, and filtering user-submitted 'thoughts' by tags.
   version: 1.3.0
 servers:
-  - url: http://localhost:5000/api/v1
+  - url: http://localhost:5001/api/v1
     description: Development server (Flask default)
 
 paths:
@@ -49,7 +49,7 @@ paths:
                   description: |
                     **cURL Request (Unfiltered):**
                     ```bash
-                    curl -X GET "http://localhost:5000/api/v1/thoughts"
+                    curl -X GET "http://localhost:5001/api/v1/thoughts"
                     ```
                     Returns all thoughts in the database.
 
@@ -64,7 +64,7 @@ paths:
                   description: |
                     **cURL Request (Filtered by Tag):**
                     ```bash
-                    curl -X GET "http://localhost:5000/api/v1/thoughts?tag=inspiration"
+                    curl -X GET "http://localhost:5001/api/v1/thoughts?tag=inspiration"
                     ```
                     The response array contains only thoughts that include the specified 'inspiration' tag.
 
@@ -97,7 +97,7 @@ paths:
                 description: |
                   **cURL Request:**
                   ```bash
-                  curl -X POST "http://localhost:5000/api/v1/thoughts" \
+                  curl -X POST "http://localhost:5001/api/v1/thoughts" \
                        -H "Content-Type: application/json" \
                        -d '{"text": "My first thought with tags!", "tags": ["design-first", "openapi"]}'
                   ```
@@ -165,7 +165,7 @@ paths:
                   description: |
                     **cURL Request:**
                     ```bash
-                    curl -X GET "http://localhost:5000/api/v1/thoughts/42"
+                    curl -X GET "http://localhost:5001/api/v1/thoughts/42"
                     ```
         '404':
           description: Not Found. A thought with the specified ID does not exist.
