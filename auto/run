@@ -46,18 +46,16 @@ check_docker() {
     fi
 }
 
-# Build Docker image if needed
+# Build Docker image (uses cached layers when possible)
 build_image() {
     local image_name="thought-tagger-workshop"
     
-    if [[ "$(docker images -q $image_name 2> /dev/null)" == "" ]]; then
-        print_info "Building Docker image..."
-        if ! docker build -t $image_name . &> /dev/null; then
-            print_error "Failed to build Docker image"
-            exit 1
-        fi
-        print_success "Docker image built successfully"
+    print_info "Building Docker image (using cache when possible)..."
+    if ! docker build -t $image_name . ; then
+        print_error "Failed to build Docker image"
+        exit 1
     fi
+    print_success "Docker image ready"
 }
 
 main() {
@@ -77,15 +75,16 @@ main() {
     # Check Docker
     check_docker
     
-    # Build image
+    # Build image (uses Docker layer caching)
     build_image
     
-    # Run the command in Docker
+    # Run the command in Docker with volume mounting
     print_info "Executing: $*"
     docker run --rm \
         --env-file <(env) \
         -v "$(pwd):/app" \
         -w /app \
+        -p 5001:5000 \
         thought-tagger-workshop \
         "$@"
     
