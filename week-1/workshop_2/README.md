@@ -128,14 +128,6 @@ Both implementations follow these key patterns:
 3. **Error Handling**: Managing network failures and API errors gracefully
 4. **Response Parsing**: Extracting meaningful data from API responses
 
-### Docker Integration
-
-The workshop uses Docker to ensure consistent environments:
-
-- **Isolation**: Each run happens in a clean container
-- **Reproducibility**: Same results across different machines
-- **Dependency Management**: All Python packages are pre-installed
-- **Easy Cleanup**: No residual files on your host system
 
 ## 🛠️ Detailed Usage
 

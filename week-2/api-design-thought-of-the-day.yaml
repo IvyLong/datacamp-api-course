@@ -1,0 +1,254 @@
+openapi: 3.0.0
+info:
+  title: Thought of the Day API
+  description: API for storing, retrieving, and filtering user-submitted 'thoughts' by tags.
+  version: 1.3.0
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Development server (Flask default)
+
+paths:
+  /thoughts:
+    # --- 1. GET /thoughts (Retrieve list & Filter by Tag - Requirements 1 & 4) ---
+    get:
+      summary: Retrieve a list of all submitted thoughts, optionally filtered by tag.
+      operationId: getThoughts
+      tags:
+        - Thoughts
+      parameters:
+        # Parameter for filtering (Requirement 4)
+        - name: tag
+          in: query
+          description: Filter thoughts by a specific tag.
+          required: false
+          schema:
+            type: string
+            example: 'inspiration'
+      responses:
+        '200':
+          description: A successful response returning an array of thought objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thought'
+              examples:
+                # Example 1: Unfiltered Request (Requirement 1)
+                UnfilteredList:
+                  summary: Example response for an unfiltered GET request
+                  value:
+                    - id: 1
+                      text: "Always be learning."
+                      timestamp: "2025-10-12T19:00:00Z"
+                      tags: ["inspiration", "growth"]
+                    - id: 2
+                      text: "The API contract is vital."
+                      timestamp: "2025-10-12T19:05:00Z"
+                      tags: ["api-design", "flask"]
+                  description: |
+                    **cURL Request (Unfiltered):**
+                    ```bash
+                    curl -X GET "http://localhost:5000/api/v1/thoughts"
+                    ```
+                    Returns all thoughts in the database.
+
+                # Example 2: Filtered Request (Requirement 4)
+                FilteredByTag:
+                  summary: Example response when filtering by tag=inspiration
+                  value:
+                    - id: 1
+                      text: "Always be learning."
+                      timestamp: "2025-10-12T19:00:00Z"
+                      tags: ["inspiration", "growth"]
+                  description: |
+                    **cURL Request (Filtered by Tag):**
+                    ```bash
+                    curl -X GET "http://localhost:5000/api/v1/thoughts?tag=inspiration"
+                    ```
+                    The response array contains only thoughts that include the specified 'inspiration' tag.
+
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    # --- 2. POST /thoughts (Submit a new thought with tags - Requirement 2) ---
+    post:
+      summary: Submit a new thought with associated tags.
+      operationId: createThought
+      tags:
+        - Thoughts
+      requestBody:
+        description: Thought object to be created, including text and a list of tags.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewThought'
+            examples:
+              ThoughtSubmission:
+                summary: Example POST Request with cURL Command
+                value:
+                  text: My first thought with tags!
+                  tags: ["design-first", "openapi"]
+                description: |
+                  **cURL Request:**
+                  ```bash
+                  curl -X POST "http://localhost:5000/api/v1/thoughts" \
+                       -H "Content-Type: application/json" \
+                       -d '{"text": "My first thought with tags!", "tags": ["design-first", "openapi"]}'
+                  ```
+      responses:
+        '201':
+          description: Thought successfully created. Returns the created thought object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thought'
+              examples:
+                CreatedThoughtResponse:
+                  summary: Expected Response Body on 201 Created
+                  value:
+                    id: 101
+                    text: My first thought with tags!
+                    timestamp: "2025-10-12T20:30:00Z"
+                    tags: ["design-first", "openapi"]
+        '400':
+          description: Bad Request. Missing or invalid required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /thoughts/{id}:
+    # --- 3. GET /thoughts/{id} (View a specific thought - Requirement 3) ---
+    get:
+      summary: Retrieve a specific thought by its unique ID.
+      operationId: getThoughtById
+      tags:
+        - Thoughts
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the thought to retrieve.
+          required: true
+          schema:
+            type: integer
+            format: int64
+          examples:
+            ThoughtId:
+              value: 42
+      responses:
+        '200':
+          description: Thought successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thought'
+              examples:
+                SpecificThoughtResponse:
+                  summary: Example response for a single thought
+                  value:
+                    id: 42
+                    text: Learning to filter data is key to powerful APIs.
+                    timestamp: "2025-10-12T19:30:00Z"
+                    tags: ["api-design", "programming", "flask"]
+                  description: |
+                    **cURL Request:**
+                    ```bash
+                    curl -X GET "http://localhost:5000/api/v1/thoughts/42"
+                    ```
+        '404':
+          description: Not Found. A thought with the specified ID does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                NotFoundResponse:
+                  summary: Expected Response Body on 404 Not Found
+                  value:
+                    code: 404
+                    message: Thought with ID 999 not found.
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    # Schema for a complete Thought object (Returned by API)
+    Thought:
+      type: object
+      required:
+        - id
+        - text
+        - timestamp
+        - tags
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the thought.
+          example: 42
+        text:
+          type: string
+          description: The actual thought content.
+          example: Learning to filter data is key to powerful APIs.
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 format timestamp of creation.
+          example: "2025-10-12T19:30:00Z"
+        tags:
+          type: array
+          description: A list of tags associated with the thought.
+          items:
+            type: string
+          example: ["api-design", "programming", "flask"]
+
+    # Schema for creating a new thought (Input model for POST)
+    NewThought:
+      type: object
+      required:
+        - text
+        - tags
+      properties:
+        text:
+          type: string
+          description: The thought content to be submitted.
+          example: Ready to connect this to the database!
+          minLength: 5
+          maxLength: 280
+        tags:
+          type: array
+          description: A list of tags to associate with the new thought.
+          items:
+            type: string
+          example: ["data-persistence", "week3"]
+
+    # Generic Error Response Schema
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: HTTP status code.
+          example: 400
+        message:
+          type: string
+          description: A human-readable error message.
+          example: The 'text' and 'tags' fields are required.
