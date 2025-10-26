@@ -82,9 +82,15 @@ main() {
     print_info "Executing: $*"
     docker run --rm \
         --env-file <(env) \
+        -e DB_HOST=db \
+        -e DB_PORT=5432 \
+        -e DB_NAME=api_db \
+        -e DB_USER=api_user \
+        -e DB_PASSWORD=api_password \
+        --network api-course-code_api-network \
         -v "$(pwd):/app" \
         -w /app \
-        -p 5001:5000 \
+        -p 5001:5001 \
         thought-tagger-workshop \
         "$@"
     

@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Development stage
 FROM base as development
 COPY . .
-EXPOSE 5000
+EXPOSE 5001
 CMD ["python", "app.py"]
 
 # Production stage
@@ -38,7 +38,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose port
-EXPOSE 5000
+EXPOSE 5001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
@@ -46,7 +46,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 
 # Run Gunicorn
 CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5000", \
+     "--bind", "0.0.0.0:5001", \
      "--workers", "4", \
      "--worker-class", "sync", \
      "--worker-connections", "1000", \

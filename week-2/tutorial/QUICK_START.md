@@ -14,7 +14,7 @@ Your Flask tutorial is ready with 8 progressive exercises.
 
 Then open: **http://localhost:5001**
 
-(Note: Port 5001, not 5000, when using Docker!)
+(Note: Port 5001, not 5001, when using Docker!)
 
 ### To stop the server:
 Press `Ctrl+C`

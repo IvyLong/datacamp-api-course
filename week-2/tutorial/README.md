@@ -25,7 +25,7 @@ Each file builds on the previous one, introducing new concepts step by step:
 
 The server will be available at: **`http://localhost:5001`** ⚠️
 
-**Important:** Docker maps container port 5000 to host port **5001**, so you must use port **5001** in your URLs!
+**Important:** Docker maps container port 5001 to host port **5001**, so you must use port **5001** in your URLs!
 
 ### Option B: Direct Python (requires Flask installed locally)
 ```bash
@@ -33,7 +33,7 @@ cd week-2/tutorial
 python step-1-hello-world.py
 ```
 
-The server will be available at: `http://localhost:5000`
+The server will be available at: `http://localhost:5001`
 
 ## 📝 Testing Your API
 
@@ -63,7 +63,7 @@ response = requests.post("http://localhost:5001/api/thoughts", json=data)
 print(response.json())
 ```
 
-**Note:** If running directly with Python (not Docker), use port **5000** instead of **5001**.
+**Note:** If running directly with Python (not Docker), use port **5001** instead of **5001**.
 
 ### Using Browser
 Simply open your browser and navigate to the URLs for GET requests.

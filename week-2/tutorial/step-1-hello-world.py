@@ -54,8 +54,8 @@ if __name__ == "__main__":
     # Run the Flask development server
     # debug=True enables auto-reload and better error messages
     # host="0.0.0.0" makes the server accessible from other machines
-    # port=5000 is the default Flask port
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    # port=5001 is the default Flask port
+    app.run(debug=True, host="0.0.0.0", port=5001)
 
 
 # ==========================================

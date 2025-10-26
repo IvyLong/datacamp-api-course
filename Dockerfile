@@ -20,7 +20,7 @@ ENV FLASK_ENV=development
 ENV FLASK_DEBUG=1
 
 # Expose the port that the app runs on
-EXPOSE 5000
+EXPOSE 5001
 
 # Default command - run the Flask app
 CMD ["python", "app.py"]

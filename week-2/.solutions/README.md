@@ -125,7 +125,7 @@ curl -X GET "http://localhost/health"
 ## 🏗️ Production Architecture
 
 ```
-Internet → Nginx (Port 80) → Gunicorn App (Port 5000)
+Internet → Nginx (Port 80) → Gunicorn App (Port 5001)
              ↓
         Rate Limiting
         Compression  
@@ -264,10 +264,10 @@ solution/
    pip install -r requirements.txt
    ```
 
-2. **"Port 5000 already in use"**
+2. **"Port 5001 already in use"**
    ```bash
    # Check what's using the port
-   lsof -i :5000
+   lsof -i :5001
    # Kill the process or use different port
    ```
 
