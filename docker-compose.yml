@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DATABASE_URL=postgresql://api_user:api_password@db:5432/api_db
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    command: python app.py
+    networks:
+      - api-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=api_db
+      - POSTGRES_USER=api_user
+      - POSTGRES_PASSWORD=api_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - api-network
+
+volumes:
+  postgres_data:
+
+networks:
+  api-network:
+    driver: bridge

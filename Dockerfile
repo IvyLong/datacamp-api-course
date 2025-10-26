@@ -16,6 +16,11 @@ RUN chmod +x auto/run
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+ENV FLASK_ENV=development
+ENV FLASK_DEBUG=1
 
-# Default command
-CMD ["python", "--version"]
+# Expose the port that the app runs on
+EXPOSE 5000
+
+# Default command - run the Flask app
+CMD ["python", "app.py"]
