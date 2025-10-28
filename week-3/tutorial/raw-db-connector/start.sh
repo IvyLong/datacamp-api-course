@@ -7,26 +7,6 @@ echo "🚀 Starting Week 3 Tutorial - Raw Database Connector"
 echo "=================================================="
 echo ""
 
-# Check if PostgreSQL is running
-echo "🔍 Checking PostgreSQL connection..."
-if ! python3 -c "
-import sys
-sys.path.append('.')
-from db import test_database_connection
-result = test_database_connection()
-if result['status'] != 'success':
-    print('❌ Database connection failed:', result.get('error', 'Unknown error'))
-    print('')
-    print('💡 Make sure PostgreSQL is running:')
-    print('   docker-compose up -d')
-    print('')
-    exit(1)
-else:
-    print('✅ Database connection successful!')
-"; then
-    exit 1
-fi
-
 echo ""
 echo "🏗️ Initializing database schema..."
 
@@ -44,16 +24,3 @@ else
     echo "⚠️ init_db.sql not found, skipping schema setup"
 fi
 
-echo ""
-echo "🌟 Starting Flask application..."
-echo "📡 API will be available at: http://localhost:5001"
-echo ""
-echo "🎯 Quick test commands:"
-echo "   curl http://localhost:5001/api/v1/health-check"
-echo "   curl http://localhost:5001/api/v1/thoughts"
-echo ""
-echo "Press CTRL+C to stop the server"
-echo ""
-
-# Start the Flask application
-python3 app.py

@@ -79,7 +79,7 @@ def get_thoughts():
     
     TODO (Exercise): Add support for:
     - tags: Comma-separated list of tags to filter by (e.g., tags=work,important)
-    - sort: Sort field (id, text, category, importance, created_at)
+    - sort: Sort field (id, text, tags, created_at, updated_at)
     - order: Sort order (asc, desc) - default: desc
     """
     try:
@@ -87,16 +87,11 @@ def get_thoughts():
         limit = min(request.args.get('limit', 10, type=int), 100)
         
         # TODO (Exercise): Parse additional parameters
-        # tags_param = request.args.get('tags')
-        # sort_field = request.args.get('sort', 'created_at')
-        # sort_order = request.args.get('order', 'desc').upper()
         
         # Build filters (empty for now)
         filters = {}
         
         # TODO (Exercise): Build filters dictionary
-        # if tags_param:
-        #     filters['tags'] = [tag.strip() for tag in tags_param.split(',') if tag.strip()]
         
         # Get thoughts using repository
         repository = get_thought_repository()
@@ -154,8 +149,7 @@ def create_thoughts_bulk():
         "thoughts": [
             {
                 "text": "Thought content",
-                "category": "work|personal|random|inspiration|todo",
-                "importance": 1-10
+                "tags": ["work", "personal", "important"]  // optional array of tags
             }
         ]
     }
@@ -289,55 +283,31 @@ def internal_error(error):
 
 def initialize_application():
     """Initialize the application and database"""
-    print("🚀 Starting Simplified Thoughts API")
-    print("=" * 50)
+    print("🚀 Starting Raw SQL Thoughts API")
+    print("=" * 60)
     print("")
     print("📖 Available Endpoints:")
-    print("   GET  /api/v1/thoughts              - Get thoughts (with filtering)")
-    print("   GET  /api/v1/thoughts/{id}         - Get specific thought")
-    print("   POST /api/v1/thoughts              - Create thoughts in bulk")
-    print("   DELETE /api/v1/thoughts/{id}       - Delete thought")
-    print("   GET  /api/v1/health-check          - Health check")
+    print("   GET    /api/v1/thoughts              - Get thoughts with filtering & sorting")
+    print("   GET    /api/v1/thoughts/{id}         - Get specific thought by ID")
+    print("   POST   /api/v1/thoughts              - Create thoughts in bulk")
+    print("   DELETE /api/v1/thoughts/{id}         - Delete specific thought")
+    print("   GET    /api/v1/health-check          - Health check with DB status")
     print("")
-    
-    # Test database connection
-    print("🔍 Testing database connection...")
-    connection_result = test_database_connection()
-    
-    if connection_result.get('status') == 'success':
-        print("✅ Database connection successful!")
-        print(f"📊 Database version: {connection_result.get('database_version', 'Unknown')}")
-        
-        print("📊 Database is ready (initialized by start.sh)")
-            
-    else:
-        print("❌ Database connection failed!")
-        print(f"   Error: {connection_result.get('error', 'Unknown error')}")
-        print("")
-        print("🛠️ Troubleshooting:")
-        print("   1. Make sure Docker Compose is running: docker-compose up -d")
-        print("   2. Check database logs: docker-compose logs postgres")
-        print("   3. Verify connection parameters match docker-compose.yml")
-    
+    print("🔧 Query Parameters for GET /api/v1/thoughts:")
+    print("   - limit: Number of results (default: 10, max: 100)")
+    print("   - tags: Filter by tags (comma-separated): ?tags=work,important")
+    print("   - sort: Sort field (id, text, tags, created_at, updated_at)")
+    print("   - order: Sort order (asc, desc) - default: desc")
     print("")
-    print("📡 API Available at: http://localhost:5001/")
-    print("")
-    print("🎯 Quick Test Commands:")
-    print("   # Health check")
-    print("   curl http://localhost:5001/api/v1/health-check")
-    print("")
-    print("   # Get all thoughts")
-    print("   curl http://localhost:5001/api/v1/thoughts")
-    print("")
-    print("   # Get thoughts with filtering")
-    print("   curl 'http://localhost:5001/api/v1/thoughts?tags=work,important&sort=importance&order=desc'")
-    print("")
-    print("   # Create thoughts in bulk")
-    print("   curl -X POST http://localhost:5001/api/v1/thoughts \\")
-    print("     -H 'Content-Type: application/json' \\")
-    print("     -d '{\"thoughts\":[{\"text\":\"Hello API!\",\"category\":\"demo\",\"importance\":8}]}'")
-    print("")
-    print("Press CTRL+C to stop the server")
+    print("📝 POST Request Body Format:")
+    print("   {")
+    print('     "thoughts": [')
+    print('       {')
+    print('         "text": "Your thought content here",')
+    print('         "tags": ["work", "important"]  // optional array of tags')
+    print('       }')
+    print('     ]')
+    print("   }")
     print("")
 
 if __name__ == "__main__":

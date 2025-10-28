@@ -44,15 +44,8 @@ class ThoughtRepository:
         if filters:
             # TODO (Exercise): Add tag filtering
             # if filters.get('tags'):
-            #     tag_conditions = []
-            #     for tag in filters['tags']:
-            #         clean_tag = self._sanitize_search_term(tag)
-            #         if clean_tag:
-            #             tag_conditions.append("text ILIKE %s")
-            #             params.append(f"%{clean_tag}%")
-            #     
-            #     if tag_conditions:
-            #         where_conditions.append(f"({' OR '.join(tag_conditions)})")
+            #     where_conditions.append("tags && %s")  # Array overlap operator
+            #     params.append(filters['tags'])
             pass
         
         if where_conditions:
@@ -60,7 +53,7 @@ class ThoughtRepository:
         
         # Add sorting and pagination (basic implementation)
         # TODO (Exercise): Add dynamic sorting validation
-        # valid_sort_fields = ['id', 'text', 'category', 'importance', 'created_at', 'updated_at']
+        # valid_sort_fields = ['id', 'text', 'tags', 'created_at', 'updated_at']
         # if sort_field not in valid_sort_fields:
         #     sort_field = 'created_at'
         # 
@@ -89,15 +82,14 @@ class ThoughtRepository:
         self._validate_thought(thought_data)
         
         query = """
-            INSERT INTO thoughts (text, category, importance) 
-            VALUES (%s, %s, %s) 
+            INSERT INTO thoughts (text, tags) 
+            VALUES (%s, %s) 
             RETURNING *
         """
         
         params = (
             thought_data['text'],
-            thought_data.get('category', 'random'),
-            thought_data.get('importance', 5)
+            thought_data.get('tags', [])  # Default to empty array if no tags provided
         )
         
         result = self.db.execute_insert(query, params)
@@ -125,11 +117,10 @@ class ThoughtRepository:
         operations = []
         for thought_data in thoughts_list:
             operations.append({
-                "query": "INSERT INTO thoughts (text, category, importance) VALUES (%s, %s, %s) RETURNING *",
+                "query": "INSERT INTO thoughts (text, tags) VALUES (%s, %s) RETURNING *",
                 "params": (
                     thought_data['text'],
-                    thought_data.get('category', 'random'),
-                    thought_data.get('importance', 5)
+                    thought_data.get('tags', [])  # Default to empty array if no tags provided
                 )
             })
         
@@ -146,15 +137,14 @@ class ThoughtRepository:
         
         query = """
             UPDATE thoughts 
-            SET text = %s, category = %s, importance = %s, updated_at = CURRENT_TIMESTAMP
+            SET text = %s, tags = %s, updated_at = CURRENT_TIMESTAMP
             WHERE id = %s 
             RETURNING *
         """
         
         params = (
             thought_data['text'],
-            thought_data.get('category', existing['category']),
-            thought_data.get('importance', existing['importance']),
+            thought_data.get('tags', existing.get('tags', [])),
             thought_id
         )
         
@@ -187,28 +177,14 @@ class ThoughtRepository:
         # Add same filters as get_all method
         where_conditions = []
         if filters:
-            if filters.get('category'):
-                where_conditions.append("category = %s")
-                params.append(filters['category'])
-            
-            if filters.get('importance_min') is not None:
-                where_conditions.append("importance >= %s")
-                params.append(filters['importance_min'])
-            
-            if filters.get('importance_max') is not None:
-                where_conditions.append("importance <= %s")
-                params.append(filters['importance_max'])
-            
             if filters.get('tags'):
-                tag_conditions = []
-                for tag in filters['tags']:
-                    clean_tag = self._sanitize_search_term(tag)
-                    if clean_tag:
-                        tag_conditions.append("text ILIKE %s")
-                        params.append(f"%{clean_tag}%")
-                
-                if tag_conditions:
-                    where_conditions.append(f"({' OR '.join(tag_conditions)})")
+                where_conditions.append("tags && %s")  # Array overlap operator
+                params.append(filters['tags'])
+            
+            # TODO (Exercise): Add text search if needed
+            # if filters.get('search'):
+            #     where_conditions.append("text ILIKE %s")
+            #     params.append(f"%{filters['search']}%")
         
         if where_conditions:
             query += " WHERE " + " AND ".join(where_conditions)
@@ -234,19 +210,24 @@ class ThoughtRepository:
             elif len(text) > 500:
                 errors.append("Text must be no more than 500 characters")
         
-        # Basic category validation
-        if 'category' in data and data['category']:
-            valid_categories = ['personal', 'work', 'random', 'inspiration', 'todo']
-            if data['category'] not in valid_categories:
-                errors.append(f"Category must be one of: {', '.join(valid_categories)}")
-        
-        # Basic importance validation
-        if 'importance' in data and data['importance'] is not None:
-            importance = data['importance']
-            if not isinstance(importance, int):
-                errors.append("Importance must be an integer")
-            elif not (1 <= importance <= 10):
-                errors.append("Importance must be between 1 and 10")
+        # Basic tags validation
+        if 'tags' in data and data['tags'] is not None:
+            tags = data['tags']
+            if not isinstance(tags, list):
+                errors.append("Tags must be an array")
+            else:
+                # Validate each tag
+                for i, tag in enumerate(tags):
+                    if not isinstance(tag, str):
+                        errors.append(f"Tag {i + 1} must be a string")
+                    elif len(tag.strip()) == 0:
+                        errors.append(f"Tag {i + 1} cannot be empty")
+                    elif len(tag) > 50:
+                        errors.append(f"Tag {i + 1} must be no more than 50 characters")
+                
+                # Check for too many tags
+                if len(tags) > 10:
+                    errors.append("Cannot have more than 10 tags")
         
         if errors:
             raise ValidationError("; ".join(errors))
