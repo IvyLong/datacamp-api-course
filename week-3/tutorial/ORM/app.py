@@ -370,7 +370,7 @@ def initialize_app():
         db_status = test_database_connection()
         logger.info(f"Database connection test: {db_status['status']}")
         
-        if db_status.get('status') == 'success':
+        if db_status.get('status') == 'connected':
             print("✅ Database connection successful!")
             print(f"📊 Database version: {db_status.get('database_version', 'Unknown')}")
             print("📊 Database is ready (SQLAlchemy ORM)")
@@ -397,7 +397,7 @@ if __name__ == '__main__':
     
     # Get configuration
     host = os.getenv('FLASK_HOST', '0.0.0.0')
-    port = int(os.getenv('FLASK_PORT', 5002))  # Different port from raw version
+    port = int(os.getenv('FLASK_PORT', 5001))  # Different port from raw version
     
     logger.info(f"Starting ORM-based Thoughts API on {host}:{port}")
     

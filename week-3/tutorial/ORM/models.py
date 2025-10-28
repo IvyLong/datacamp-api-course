@@ -45,6 +45,7 @@ class Thought(Base):
     """
     
     __tablename__ = 'thoughts'
+    __table_args__ = {'extend_existing': True}  # Override existing table definition
     
     # Primary key
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -187,6 +188,14 @@ def create_tables(engine):
         engine: SQLAlchemy engine instance
     """
     logger.info("Creating database tables...")
+    
+    # Force drop existing tables to avoid schema conflicts
+    Base.metadata.drop_all(engine)
+    
+    # Clear metadata cache to avoid stale column definitions
+    Base.metadata.clear()
+    
+    # Create fresh tables from model definitions
     Base.metadata.create_all(engine)
     logger.info("Database tables created successfully")
 

@@ -243,7 +243,13 @@ def get_database_manager() -> DatabaseManager:
     
     if _db_manager is None:
         _db_manager = DatabaseManager()
-        # Ensure tables exist
+        
+        # Clear any cached metadata to avoid schema conflicts
+        from models import Base
+        Base.metadata.clear()
+        
+        # Drop and recreate tables to ensure clean schema
+        Base.metadata.drop_all(_db_manager.engine)
         _db_manager.create_tables()
     
     return _db_manager
