@@ -7,5 +7,9 @@ Flask==2.3.3
 Werkzeug==2.3.7
 gunicorn==21.2.0
 
+# Database dependencies
+Flask-SQLAlchemy==3.0.5
+psycopg2-binary>=2.9.11
+
 # Development and testing
 python-dotenv>=1.0.0

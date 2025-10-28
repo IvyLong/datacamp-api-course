@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print("💡 Tip: Use browser DevTools (F12) to see the JSON response and headers")
     print("")
     
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5001)
 
 
 # ==========================================
