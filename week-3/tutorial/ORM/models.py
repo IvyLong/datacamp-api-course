@@ -15,9 +15,10 @@ Key Features:
 - Clean model design
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, CheckConstraint
+from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
+from sqlalchemy.dialects import postgresql
 from datetime import datetime
 from typing import Dict, Any
 import logging
@@ -35,11 +36,10 @@ class Thought(Base):
     """
     Thought model representing a user's thought entry
     
-    This model matches the raw SQL schema:
+    This model matches the simplified schema:
     - id: Primary key (auto-increment)
     - text: The thought content (required)
-    - category: Thought category (default: 'random')
-    - importance: Importance rating 1-10 (default: 5)
+    - tags: Array of tags (optional)
     - created_at: Creation timestamp (auto-generated)
     - updated_at: Last update timestamp (auto-updated)
     """
@@ -51,28 +51,21 @@ class Thought(Base):
     
     # Content fields
     text = Column(Text, nullable=False)
-    category = Column(String(50), nullable=False, default='random')
-    importance = Column(Integer, nullable=False, default=5)
+    tags = Column(postgresql.ARRAY(String), nullable=True, default=[])
     
     # Timestamps
     created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
     updated_at = Column(DateTime, nullable=False, default=func.current_timestamp(), 
                        onupdate=func.current_timestamp())
     
-    # Constraints
-    __table_args__ = (
-        CheckConstraint('importance >= 1 AND importance <= 10', name='importance_range'),
-    )
-    
-    def __init__(self, text: str, category: str = 'random', importance: int = 5):
+    def __init__(self, text: str, tags: list = None):
         """Initialize a new thought"""
         self.text = text
-        self.category = category
-        self.importance = importance
+        self.tags = tags or []
     
     def __repr__(self) -> str:
         """String representation for debugging"""
-        return f"<Thought(id={self.id}, category='{self.category}', importance={self.importance})>"
+        return f"<Thought(id={self.id}, tags={self.tags})>"
     
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -84,8 +77,7 @@ class Thought(Base):
         return {
             'id': self.id,
             'text': self.text,
-            'category': self.category,
-            'importance': self.importance,
+            'tags': self.tags or [],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -107,20 +99,19 @@ class Thought(Base):
         if not data.get('text'):
             raise ValueError("Text field is required")
         
-        # Validate importance if provided
-        importance = data.get('importance', 5)
-        if not isinstance(importance, int) or importance < 1 or importance > 10:
-            raise ValueError("Importance must be an integer between 1 and 10")
+        # Validate tags if provided
+        tags = data.get('tags', [])
+        if not isinstance(tags, list):
+            raise ValueError("Tags must be a list")
         
-        # Validate category if provided
-        category = data.get('category', 'random')
-        if not isinstance(category, str) or len(category) > 50:
-            raise ValueError("Category must be a string with max 50 characters")
+        # Ensure all tags are strings
+        for tag in tags:
+            if not isinstance(tag, str):
+                raise ValueError("All tags must be strings")
         
         return cls(
             text=data['text'],
-            category=category,
-            importance=importance
+            tags=tags
         )
     
     def update_from_dict(self, data: Dict[str, Any]) -> None:
@@ -138,16 +129,17 @@ class Thought(Base):
                 raise ValueError("Text field cannot be empty")
             self.text = data['text']
         
-        if 'category' in data:
-            if not isinstance(data['category'], str) or len(data['category']) > 50:
-                raise ValueError("Category must be a string with max 50 characters")
-            self.category = data['category']
-        
-        if 'importance' in data:
-            importance = data['importance']
-            if not isinstance(importance, int) or importance < 1 or importance > 10:
-                raise ValueError("Importance must be an integer between 1 and 10")
-            self.importance = importance
+        if 'tags' in data:
+            tags = data['tags']
+            if not isinstance(tags, list):
+                raise ValueError("Tags must be a list")
+            
+            # Ensure all tags are strings
+            for tag in tags:
+                if not isinstance(tag, str):
+                    raise ValueError("All tags must be strings")
+            
+            self.tags = tags
     
     @staticmethod
     def validate_sort_field(field: str) -> str:
@@ -160,7 +152,7 @@ class Thought(Base):
         Returns:
             Valid field name or default 'created_at'
         """
-        valid_fields = ['id', 'text', 'category', 'importance', 'created_at', 'updated_at']
+        valid_fields = ['id', 'text', 'tags', 'created_at', 'updated_at']
         return field if field in valid_fields else 'created_at'
     
     @staticmethod

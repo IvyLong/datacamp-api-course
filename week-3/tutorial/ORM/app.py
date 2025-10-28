@@ -87,7 +87,7 @@ def get_thoughts():
     
     TODO (Exercise): Add support for:
     - tags: Comma-separated list of tags to filter by (e.g., tags=work,important)
-    - sort: Sort field (id, text, category, importance, created_at, updated_at)
+    - sort: Sort field (id, text, tags, created_at, updated_at)
     - order: Sort order (asc, desc) - default: desc
     """
     try:
@@ -95,20 +95,13 @@ def get_thoughts():
         limit = min(request.args.get('limit', 10, type=int), 100)
         
         # TODO (Exercise): Parse additional parameters
-        # tags_param = request.args.get('tags')
-        # sort_field = request.args.get('sort', 'created_at')
-        # sort_order = request.args.get('order', 'desc').lower()
         
         # TODO (Exercise): Validate order parameter
-        # if sort_order not in ['asc', 'desc']:
-        #     return handle_database_error(f"Invalid order parameter: {sort_order}. Must be 'asc' or 'desc'", 400)
         
         # Build filters (empty for now)
         filters = {}
         
         # TODO (Exercise): Build filters dictionary
-        # if tags_param:
-        #     filters['tags'] = [tag.strip() for tag in tags_param.split(',') if tag.strip()]
         
         # Get thoughts using repository
         repository = get_thought_repository()
@@ -170,8 +163,7 @@ def create_thoughts():
         "thoughts": [
             {
                 "text": "Thought content",
-                "category": "work",  // optional, default: "random"
-                "importance": 8      // optional, default: 5, range: 1-10
+                "tags": ["work", "important"]  // optional array of strings
             }
         ]
     }
@@ -228,9 +220,8 @@ def update_thought(thought_id):
     
     Request Body:
     {
-        "text": "Updated content",     // optional
-        "category": "personal",       // optional
-        "importance": 9               // optional
+        "text": "Updated content",       // optional
+        "tags": ["updated", "test"]     // optional array of strings
     }
     """
     try:
@@ -341,6 +332,34 @@ def internal_error(error):
 def initialize_app():
     """Initialize the application and database"""
     try:
+        print("🚀 Starting ORM-based Thoughts API")
+        print("=" * 60)
+        print("")
+        print("📖 Available Endpoints:")
+        print("   GET    /api/v1/thoughts              - Get thoughts with filtering & sorting")
+        print("   GET    /api/v1/thoughts/{id}         - Get specific thought by ID")
+        print("   POST   /api/v1/thoughts              - Create thoughts in bulk")
+        print("   PUT    /api/v1/thoughts/{id}         - Update specific thought")
+        print("   DELETE /api/v1/thoughts/{id}         - Delete specific thought")
+        print("   GET    /api/v1/health-check          - Health check with DB status")
+        print("")
+        print("🔧 Query Parameters for GET /api/v1/thoughts:")
+        print("   - limit: Number of results (default: 10, max: 100)")
+        print("   - tags: Filter by tags (TODO - exercise to implement)")
+        print("   - sort: Sort field (id, text, tags, created_at, updated_at)")
+        print("   - order: Sort order (asc, desc) - TODO: exercise to implement")
+        print("")
+        print("📝 POST Request Body Format:")
+        print("   {")
+        print('     "thoughts": [')
+        print('       {')
+        print('         "text": "Your thought content here",')
+        print('         "tags": ["work", "important"]      // optional array of strings')
+        print('       }')
+        print('     ]')
+        print("   }")
+        print("")
+        
         logger.info("Initializing ORM-based Thoughts API...")
         
         # Initialize database manager and create tables
@@ -350,6 +369,19 @@ def initialize_app():
         # Test database connection
         db_status = test_database_connection()
         logger.info(f"Database connection test: {db_status['status']}")
+        
+        if db_status.get('status') == 'success':
+            print("✅ Database connection successful!")
+            print(f"📊 Database version: {db_status.get('database_version', 'Unknown')}")
+            print("📊 Database is ready (SQLAlchemy ORM)")
+        else:
+            print("❌ Database connection failed!")
+            print(f"   Error: {db_status.get('error', 'Unknown error')}")
+            print("")
+            print("🛠️ Troubleshooting:")
+            print("   1. Make sure Docker Compose is running: docker-compose up -d")
+            print("   2. Check database logs: docker-compose logs postgres")
+            print("   3. Verify connection parameters match docker-compose.yml")
         
         return True
         
@@ -366,15 +398,13 @@ if __name__ == '__main__':
     # Get configuration
     host = os.getenv('FLASK_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_PORT', 5002))  # Different port from raw version
-    debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
     
     logger.info(f"Starting ORM-based Thoughts API on {host}:{port}")
-    logger.info(f"Debug mode: {debug}")
     
     # Start the Flask application
     app.run(
         host=host,
         port=port,
-        debug=debug,
+        debug=True,
         threaded=True
     )

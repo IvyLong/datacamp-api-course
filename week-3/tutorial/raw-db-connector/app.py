@@ -10,7 +10,7 @@ This simplified API provides only the core functionality for managing thoughts:
 - GET /api/v1/health-check - Health check endpoint
 
 Features:
-- Filtering by tags, category, and importance
+- Filtering by tags and text search
 - Sorting by various fields
 - Bulk creation with transaction support
 - Comprehensive error handling

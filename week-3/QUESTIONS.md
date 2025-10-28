@@ -2,3 +2,6 @@
 
 2. How is db connection implemented in both versions?
 
+3. How id db pool managed? Compare both versions?
+
+4. How is a transaction managed? Compare both versions?

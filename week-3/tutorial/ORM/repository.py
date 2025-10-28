@@ -308,28 +308,22 @@ class ThoughtRepository:
         Returns:
             Modified query with filters applied
         """
-        # Category filter
-        if filters.get('category'):
-            query = query.filter(Thought.category == filters['category'])
-        
-        # Importance range filters
-        if filters.get('importance_min') is not None:
-            query = query.filter(Thought.importance >= filters['importance_min'])
-        
-        if filters.get('importance_max') is not None:
-            query = query.filter(Thought.importance <= filters['importance_max'])
-        
-        # Tag filtering (search in text)
+        # Tag filtering using PostgreSQL array operations
         if filters.get('tags'):
-            tag_conditions = []
-            for tag in filters['tags']:
-                clean_tag = self._sanitize_search_term(tag)
-                if clean_tag:
-                    tag_conditions.append(Thought.text.ilike(f"%{clean_tag}%"))
-            
-            if tag_conditions:
-                # Use OR logic for multiple tags
-                query = query.filter(or_(*tag_conditions))
+            if isinstance(filters['tags'], list):
+                # Use array overlap operator for exact tag matching
+                query = query.filter(Thought.tags.op('&&')(filters['tags']))
+            else:
+                # Convert string to list for backward compatibility
+                tag_list = [tag.strip() for tag in str(filters['tags']).split(',') if tag.strip()]
+                if tag_list:
+                    query = query.filter(Thought.tags.op('&&')(tag_list))
+        
+        # Text search filter
+        if filters.get('search'):
+            clean_search = self._sanitize_search_term(filters['search'])
+            if clean_search:
+                query = query.filter(Thought.text.ilike(f"%{clean_search}%"))
         
         return query
     
