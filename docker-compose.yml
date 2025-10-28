@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
-    ports:
-      - "5001:5001"
-    environment:
-      - FLASK_ENV=development
-      - FLASK_DEBUG=1
-      - DATABASE_URL=postgresql://api_user:api_password@db:5432/api_db
-      - PYTHONPATH=/app
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-    command: python app.py
-    networks:
-      - api-network
 
   db:
     image: postgres:15-alpine
