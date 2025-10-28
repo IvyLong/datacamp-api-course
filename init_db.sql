@@ -5,16 +5,14 @@
 CREATE TABLE IF NOT EXISTS thoughts (
     id SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
-    category VARCHAR(50) DEFAULT 'random',
-    importance INTEGER DEFAULT 5 CHECK (importance BETWEEN 1 AND 10),
+    tags TEXT[], -- Array of tags
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_thoughts_category ON thoughts(category);
 CREATE INDEX IF NOT EXISTS idx_thoughts_created_at ON thoughts(created_at);
-CREATE INDEX IF NOT EXISTS idx_thoughts_importance ON thoughts(importance);
+CREATE INDEX IF NOT EXISTS idx_thoughts_tags ON thoughts USING GIN(tags);
 
 -- Create trigger to automatically update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -32,10 +30,10 @@ CREATE TRIGGER update_thoughts_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert some sample data
-INSERT INTO thoughts (text, category, importance) VALUES 
-    ('Flask with PostgreSQL is powerful!', 'work', 9),
-    ('Docker makes development environments consistent', 'work', 8),
-    ('APIs are the backbone of modern applications', 'work', 10),
-    ('Learning raw SQL gives you more control', 'personal', 7),
-    ('Repository pattern keeps code organized', 'work', 8)
+INSERT INTO thoughts (text, tags) VALUES 
+    ('Flask with PostgreSQL is powerful!', ARRAY['work', 'programming']),
+    ('Docker makes development environments consistent', ARRAY['work', 'devops']),
+    ('APIs are the backbone of modern applications', ARRAY['work', 'api']),
+    ('Learning raw SQL gives you more control', ARRAY['personal', 'learning']),
+    ('Repository pattern keeps code organized', ARRAY['work', 'architecture'])
 ON CONFLICT DO NOTHING;
