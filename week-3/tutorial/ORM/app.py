@@ -80,50 +80,63 @@ def success_response(data, message=None, status_code=200):
 @app.route("/api/v1/thoughts", methods=['GET'])
 def get_thoughts():
     """
-    Get thoughts with basic pagination
+    Get thoughts with pagination, filtering, and sorting
     
     Query Parameters:
     - limit: Items per page (default 10, max 100)
-    
-    TODO (Exercise): Add support for:
     - tags: Comma-separated list of tags to filter by (e.g., tags=work,important)
     - sort: Sort field (id, text, tags, created_at, updated_at)
     - order: Sort order (asc, desc) - default: desc
     """
     try:
-        # Parse query parameters (only limit for now)
+        # Parse query parameters
         limit = min(request.args.get('limit', 10, type=int), 100)
         
-        # TODO (Exercise): Parse additional parameters
+        # Parse additional parameters
+        tags_param = request.args.get('tags')
+        sort_field = request.args.get('sort', 'created_at')
+        sort_order = request.args.get('order', 'desc').lower()
         
-        # TODO (Exercise): Validate order parameter
+        # Validate order parameter
+        if sort_order not in ['asc', 'desc']:
+            return handle_database_error(
+                f"Invalid order parameter: {sort_order}. Must be 'asc' or 'desc'", 
+                400
+            )
         
-        # Build filters (empty for now)
+        # Build filters dictionary
         filters = {}
         
-        # TODO (Exercise): Build filters dictionary
+        # Parse tags filter
+        if tags_param and tags_param.strip():
+            # Split by comma and clean up
+            tags_list = [tag.strip() for tag in tags_param.split(',') if tag.strip()]
+            if tags_list:
+                filters['tags'] = tags_list
         
         # Get thoughts using repository
         repository = get_thought_repository()
         thoughts = repository.get_all(
             filters=filters,
-            sort_field='created_at',  # TODO (Exercise): Use dynamic sort_field
-            sort_order='DESC',        # TODO (Exercise): Use dynamic sort_order
+            sort_field=sort_field,
+            sort_order=sort_order.upper(),
             limit=limit,
-            offset=0                  # TODO (Exercise): Add pagination support
+            offset=0
         )
         
         # Get total count
         total_count = repository.count(filters=filters)
         
-        # Build simple response
+        # Build response with sorting information
         response_data = {
             "thoughts": thoughts,
             "total_count": total_count,
             "limit": limit,
-            "filters_applied": filters
-            # TODO (Exercise): Add pagination metadata
-            # TODO (Exercise): Add sorting information
+            "filters_applied": filters,
+            "sorting": {
+                "field": sort_field,
+                "order": sort_order
+            }
         }
         
         return success_response(response_data)

@@ -51,7 +51,7 @@ class ThoughtRepository:
     def get_all(self, filters: Dict = None, sort_field: str = 'created_at', 
                 sort_order: str = 'DESC', limit: int = 10, offset: int = 0) -> List[Dict]:
         """
-        Get thoughts with basic filtering and sorting
+        Get thoughts with filtering and sorting
         
         Args:
             filters: Dictionary of filter criteria
@@ -68,20 +68,12 @@ class ThoughtRepository:
                 # Start with base query
                 query = session.query(Thought)
                 
-                # Apply filters (basic implementation)
+                # Apply filters
                 if filters:
-                    # TODO (Exercise): Add tag filtering
-                    # query = self._apply_filters(query, filters)
-                    pass
+                    query = self._apply_filters(query, filters)
                 
-                # Apply sorting (basic implementation)
-                # TODO (Exercise): Add dynamic sorting validation
-                # query = self._apply_sorting(query, sort_field, sort_order)
-                sort_attr = getattr(Thought, sort_field)
-                if sort_order.upper() == 'DESC':
-                    query = query.order_by(desc(sort_attr))
-                else:
-                    query = query.order_by(asc(sort_attr))
+                # Apply sorting with validation
+                query = self._apply_sorting(query, sort_field, sort_order)
                 
                 # Apply pagination
                 query = query.limit(limit).offset(offset)
@@ -308,16 +300,32 @@ class ThoughtRepository:
         Returns:
             Modified query with filters applied
         """
-        # Tag filtering using PostgreSQL array operations
+        # Tag filtering using PostgreSQL array operations and case-insensitive text search
         if filters.get('tags'):
             if isinstance(filters['tags'], list):
-                # Use array overlap operator for exact tag matching
-                query = query.filter(Thought.tags.op('&&')(filters['tags']))
+                # For OR logic: thought contains ANY of the specified tags
+                # We need to search in the text field using ILIKE for case-insensitive matching
+                tag_conditions = []
+                for tag in filters['tags']:
+                    clean_tag = self._sanitize_search_term(tag)
+                    if clean_tag:
+                        tag_conditions.append(Thought.text.ilike(f"%{clean_tag}%"))
+                
+                if tag_conditions:
+                    # Combine conditions with OR
+                    query = query.filter(or_(*tag_conditions))
             else:
                 # Convert string to list for backward compatibility
                 tag_list = [tag.strip() for tag in str(filters['tags']).split(',') if tag.strip()]
                 if tag_list:
-                    query = query.filter(Thought.tags.op('&&')(tag_list))
+                    tag_conditions = []
+                    for tag in tag_list:
+                        clean_tag = self._sanitize_search_term(tag)
+                        if clean_tag:
+                            tag_conditions.append(Thought.text.ilike(f"%{clean_tag}%"))
+                    
+                    if tag_conditions:
+                        query = query.filter(or_(*tag_conditions))
         
         # Text search filter
         if filters.get('search'):
