@@ -153,9 +153,7 @@ main() {
             "thoughts": [
                 {"text": "Learning SQL is important for backend development", "tags": ["learning", "sql"]},
                 {"text": "Remember to work on the important project deadline", "tags": ["work", "important"]},
-                {"text": "Personal learning goals for this quarter", "tags": ["personal", "learning"]},
-                {"text": "Important meeting notes from today", "tags": ["work", "important"]},
-                {"text": "Random thought about learning new technologies", "tags": ["random", "learning"]}
+                {"text": "Personal learning goals for this quarter", "tags": ["personal", "learning"]}
             ]
         }')
     

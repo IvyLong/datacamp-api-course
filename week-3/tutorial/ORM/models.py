@@ -189,13 +189,7 @@ def create_tables(engine):
     """
     logger.info("Creating database tables...")
     
-    # Force drop existing tables to avoid schema conflicts
-    Base.metadata.drop_all(engine)
-    
-    # Clear metadata cache to avoid stale column definitions
-    Base.metadata.clear()
-    
-    # Create fresh tables from model definitions
+    # Create tables from model definitions (idempotent - won't recreate if exists)
     Base.metadata.create_all(engine)
     logger.info("Database tables created successfully")
 
