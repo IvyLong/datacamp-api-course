@@ -33,36 +33,37 @@ class ThoughtRepository:
     
     def get_all(self, filters: Dict = None, sort_field: str = 'created_at', 
                 sort_order: str = 'DESC', limit: int = 10, offset: int = 0) -> List[Dict]:
-        """Get thoughts with basic filtering and sorting"""
-        
-        # Build base query
+        """Get thoughts with filtering and sorting (tags, sort, order)"""
+        # Whitelist for sort fields
+        valid_sort_fields = ['id', 'text', 'tags', 'created_at', 'updated_at']
+        if sort_field not in valid_sort_fields:
+            sort_field = 'created_at'
+        if sort_order.upper() not in ['ASC', 'DESC']:
+            sort_order = 'DESC'
+
         query = "SELECT * FROM thoughts"
         params = []
-        
-        # Add filters (basic implementation)
         where_conditions = []
-        if filters:
-            # TODO (Exercise): Add tag filtering
-            # if filters.get('tags'):
-            #     where_conditions.append("tags && %s")  # Array overlap operator
-            #     params.append(filters['tags'])
-            pass
-        
+
+        # Tag filtering (OR logic, case-insensitive, on text and tags)
+        if filters and filters.get('tags'):
+            tag_ors = []
+            for tag in filters['tags']:
+                clean_tag = self._sanitize_search_term(tag)
+                if clean_tag:
+                    # ILIKE for text, ANY for tags array
+                    tag_ors.append("text ILIKE %s")
+                    params.append(f"%{clean_tag}%")
+                    tag_ors.append("%s = ANY(tags)")
+                    params.append(clean_tag)
+            if tag_ors:
+                where_conditions.append(f"({' OR '.join(tag_ors)})")
+
         if where_conditions:
             query += " WHERE " + " AND ".join(where_conditions)
-        
-        # Add sorting and pagination (basic implementation)
-        # TODO (Exercise): Add dynamic sorting validation
-        # valid_sort_fields = ['id', 'text', 'tags', 'created_at', 'updated_at']
-        # if sort_field not in valid_sort_fields:
-        #     sort_field = 'created_at'
-        # 
-        # if sort_order.upper() not in ['ASC', 'DESC']:
-        #     sort_order = 'DESC'
-        
+
         query += f" ORDER BY {sort_field} {sort_order} LIMIT %s OFFSET %s"
         params.extend([limit, offset])
-        
         return self.db.execute_query(query, tuple(params))
     
     def get_by_id(self, thought_id: int) -> Dict:
@@ -170,25 +171,23 @@ class ThoughtRepository:
         return thought
     
     def count(self, filters: Dict = None) -> int:
-        """Count thoughts with optional filters"""
+        """Count thoughts with optional filters (matching get_all logic)"""
         query = "SELECT COUNT(*) as total FROM thoughts"
         params = []
-        
-        # Add same filters as get_all method
         where_conditions = []
-        if filters:
-            if filters.get('tags'):
-                where_conditions.append("tags && %s")  # Array overlap operator
-                params.append(filters['tags'])
-            
-            # TODO (Exercise): Add text search if needed
-            # if filters.get('search'):
-            #     where_conditions.append("text ILIKE %s")
-            #     params.append(f"%{filters['search']}%")
-        
+        if filters and filters.get('tags'):
+            tag_ors = []
+            for tag in filters['tags']:
+                clean_tag = self._sanitize_search_term(tag)
+                if clean_tag:
+                    tag_ors.append("text ILIKE %s")
+                    params.append(f"%{clean_tag}%")
+                    tag_ors.append("%s = ANY(tags)")
+                    params.append(clean_tag)
+            if tag_ors:
+                where_conditions.append(f"({' OR '.join(tag_ors)})")
         if where_conditions:
             query += " WHERE " + " AND ".join(where_conditions)
-        
         result = self.db.execute_single_query(query, tuple(params))
         return result['total'] if result else 0
     

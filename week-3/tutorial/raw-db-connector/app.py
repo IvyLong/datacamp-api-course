@@ -83,38 +83,50 @@ def get_thoughts():
     - order: Sort order (asc, desc) - default: desc
     """
     try:
-        # Parse query parameters (only limit for now)
+        # Parse query parameters
         limit = min(request.args.get('limit', 10, type=int), 100)
-        
-        # TODO (Exercise): Parse additional parameters
-        
-        # Build filters (empty for now)
+        tags_param = request.args.get('tags')
+        sort_field = request.args.get('sort', 'created_at')
+        sort_order = request.args.get('order', 'desc').lower()
+
+        # Validate sort field and order
+        valid_sort_fields = ['id', 'text', 'tags', 'created_at', 'updated_at']
+        if sort_field not in valid_sort_fields:
+            sort_field = 'created_at'
+        if sort_order not in ['asc', 'desc']:
+            return handle_database_error(f"Invalid order parameter: {sort_order}. Must be 'asc' or 'desc'", 400)
+
+        # Build filters dictionary
         filters = {}
-        
-        # TODO (Exercise): Build filters dictionary
-        
+        if tags_param and tags_param.strip():
+            tags_list = [tag.strip() for tag in tags_param.split(',') if tag.strip()]
+            if tags_list:
+                filters['tags'] = tags_list
+
         # Get thoughts using repository
         repository = get_thought_repository()
         thoughts = repository.get_all(
             filters=filters,
-            sort_field='created_at',  # TODO (Exercise): Use dynamic sort_field
-            sort_order='DESC',        # TODO (Exercise): Use dynamic sort_order
+            sort_field=sort_field,
+            sort_order=sort_order.upper(),
             limit=limit,
-            offset=0                  # TODO (Exercise): Add pagination support
+            offset=0
         )
-        
+
         # Get total count
         total_count = repository.count(filters)
-        
+
         return success_response({
             "thoughts": thoughts,
             "total_count": total_count,
             "limit": limit,
-            "filters_applied": filters
-            # TODO (Exercise): Add pagination metadata
-            # TODO (Exercise): Add sorting information
+            "filters_applied": filters,
+            "sorting": {
+                "field": sort_field,
+                "order": sort_order
+            }
         })
-        
+
     except DatabaseError as e:
         logger.error(f"Database error in get_thoughts: {e}")
         return handle_database_error(str(e))
